@@ -12,6 +12,9 @@
 .Parameter InFile
     Custom Swagger spec file to generate API client from.
 
+.Parameter OutDir
+    Output directory for generated module.
+
 .Parameter SkipInit
     Do not install prerequisites / build Swagger Codegen.
 
@@ -38,6 +41,8 @@ Param (
     })]
     [string]$InFile,
 
+    [string]$OutDir = $PSScriptRoot,
+
     [switch]$SkipInit
 )
 
@@ -59,13 +64,13 @@ if (!$SkipInit) {
     & .\Initialize-SwaggerCodegen.ps1
 }
 
+$OutDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutDir)
 $SwaggerJar = '.\swagger-codegen\modules\swagger-codegen-cli\target\swagger-codegen-cli.jar'
 $Guid = & .\New-DeterministicGuid.ps1 -ApiName $ApiName
 
-
 $CSharp = @{
     ApiName = $ApiName
-    OutDir = "$ApiName\CSharp"
+    OutDir = Join-Path $OutDir "$ApiName\CSharp"
     Language = 'csharp'
     Properties = "packageGuid={$Guid}"
     SwaggerJar = $SwaggerJar
@@ -73,7 +78,7 @@ $CSharp = @{
 
 $PowerShell = @{
     ApiName = $ApiName
-    OutDir = "$ApiName\PowerShell"
+    OutDir = Join-Path $OutDir "$ApiName\PowerShell"
     Language = 'powershell'
     Properties = 'packageGuid={0},csharpClientPath=$ScriptDir\..\CSharp' -f $Guid
     SwaggerJar = $SwaggerJar
@@ -98,4 +103,4 @@ Write-Host 'Building C# assemblies and PowerShell client' @FC
 & (Join-Path $PowerShell.OutDir 'Build.ps1')
 
 Write-Host "Run this to import generated PowerShell module: " @FC -NoNewline
-Write-Host "Import-Module -Name .\$ApiName\PowerShell\src\IO.Swagger -Verbose" -ForegroundColor DarkYellow
+Write-Host "Import-Module -Name $(Join-Path $OutDir  "$ApiName\PowerShell\src\IO.Swagger") -Verbose" -ForegroundColor DarkYellow
