@@ -1,4 +1,6 @@
-﻿Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+﻿#Requires -RunAsAdministrator
+
+Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 
 choco install jdk8 maven -y
 
