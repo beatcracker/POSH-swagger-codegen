@@ -1,7 +1,7 @@
 ﻿[CmdletBinding(DefaultParameterSetName = 'Name')]
 Param (
-    [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'Name')]
-    [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'File')]
+    [Parameter(Mandatory = $true, ParameterSetName = 'Name')]
+    [Parameter(Mandatory = $true, ParameterSetName = 'File')]
     [string]$ApiName,
 
     [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'File')]
@@ -25,12 +25,9 @@ Param (
     [string]$SwaggerJar
 )
 
-Begin {
+End {
     $RemoveInFile = $false
-}
 
-
-Process {
     if ('Name' -eq $PSCmdlet.ParameterSetName) {
         $RemoveInFile = $true
         $ApiList = Invoke-WebRequest -UseBasicParsing -Uri https://api.apis.guru/v2/list.json | ConvertFrom-Json
