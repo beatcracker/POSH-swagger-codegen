@@ -1,4 +1,32 @@
-﻿[CmdletBinding(DefaultParameterSetName = 'Name')]
+﻿<#
+.Synopsis
+    Install dependencies, build Swagger Codegen and generate new API client.
+
+.Parameter ApiName
+    Name of API client to generate.
+    
+    * If used without InFile parameter, script will fetch API spec from https://apis.guru/openapi-directory/
+
+    * If InFile parameter is used to specify custom Swagger spec file, ApiName is used as target directory name and for guid generation.
+
+.Parameter InFile
+    Custom Swagger spec file to generate API client from.
+
+.Parameter SkipInit
+    Do not install prerequisites / build Swagger Codegen.
+
+.Example
+    Build.ps1
+
+    Run as administrator to install all prerequisites, build Swagger Codegen and generate XKCD module.
+
+.Example
+    .\Build.ps1 -ApiName instagram.com -SkipInit
+
+    If you already run Build.ps1 script as administrator and have all prerequisites, you can build instagram.com module by API name.
+
+#>
+[CmdletBinding(DefaultParameterSetName = 'Name')]
 Param (
     [Parameter(ParameterSetName = 'Name')]
     [Parameter(Mandatory = $true, ParameterSetName = 'File')]

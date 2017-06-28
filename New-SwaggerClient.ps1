@@ -1,4 +1,34 @@
-﻿[CmdletBinding(DefaultParameterSetName = 'Name')]
+﻿<#
+.Synopsis
+    Generate new API client with Swagger Codegen.
+
+.Description
+    Generate new API client with Swagger Codegen.
+    Requires Java Development Kit and Maven installed.
+
+.Parameter ApiName
+    Name of API client to generate.
+    
+    * If used without InFile parameter, script will fetch API spec from https://apis.guru/openapi-directory/
+
+    * If InFile parameter is used to specify custom Swagger spec file, ApiName is used as target directory name and for guid generation.
+
+.Parameter InFile
+    Custom Swagger spec file to generate API client from.
+
+.Parameter Language
+    API client language (csharp/powershell/etc)
+
+.Parameter OutDir
+    Directory, where generated API client will be created
+
+.Parameter Properties
+    Additional properties to pass to swagger-codegen-cli
+
+.Parameter SwaggerJar
+    Path to swagger-codegen-cli.jar
+#>
+[CmdletBinding(DefaultParameterSetName = 'Name')]
 Param (
     [Parameter(Mandatory = $true, ParameterSetName = 'Name')]
     [Parameter(Mandatory = $true, ParameterSetName = 'File')]

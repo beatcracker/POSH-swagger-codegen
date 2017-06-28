@@ -1,4 +1,9 @@
-﻿Push-Location .\swagger-codegen
+﻿<#
+.Synopsis
+    Build Swagger Codegen
+#>
+
+Push-Location .\swagger-codegen
 
 mvn clean package
 

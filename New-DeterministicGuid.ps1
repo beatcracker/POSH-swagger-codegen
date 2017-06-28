@@ -1,3 +1,26 @@
+<#
+.Synopsis
+    Create new deterministic GUID.
+
+.Description
+    GCreates a name-based UUID using the algorithm from RFC 4122 §4.3.
+    Used to uniquely identify module by API name.
+
+.Parameter ApiName
+    String to generate GUID from
+
+.Parameter Hash
+    Hash to use: SHA1 or MD5. Default is SHA1.
+
+.Parameter RootGuid
+    Custom namespace. Should not be defined in RFC 4122.
+
+.Example
+    .\New-DeterministicGuid.ps1 -ApiName xkcd.com
+
+    Generate deterministic GUID for xkcd.com string using SHA1 hash.
+#>
+
 [CmdletBinding()]
 Param (
     [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
