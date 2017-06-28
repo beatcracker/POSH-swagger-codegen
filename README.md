@@ -2,7 +2,7 @@
 
 [![Promo Tweet](img/PromoTweet.png)](https://twitter.com/wing328/status/877184938344239104)
 
-Swagger Codegen 2.2.3 aims to have PowerShell module generator. Until it's released, you can build latest version of Swagger Codegen yourself, which already has beta-quality PowerShell support and use it to Generate PowerShell module.
+Swagger Codegen 2.2.3 aims to have PowerShell module generator. Until it's released, you can build latest version of Swagger Codegen yourself, which already has beta-quality PowerShell support and use it to generate PowerShell module.
 
 ## Info
 
