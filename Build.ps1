@@ -1,10 +1,10 @@
 ﻿[CmdletBinding(DefaultParameterSetName = 'Name')]
 Param (
-    [Parameter(ValueFromPipeline = $true, ParameterSetName = 'Name')]
-    [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'File')]
+    [Parameter(ParameterSetName = 'Name')]
+    [Parameter(Mandatory = $true, ParameterSetName = 'File')]
     [string]$ApiName = 'xkcd.com',
 
-    [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'File')]
+    [Parameter(Mandatory = $true, ParameterSetName = 'File')]
     [ValidateScript({
         Test-Path -Path $_ -PathType Leaf        
     })]
