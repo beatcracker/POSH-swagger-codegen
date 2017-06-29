@@ -152,13 +152,13 @@ Write-Host 'Building Swagger-Codegen' @FC
 if ($ApiList = Invoke-WebRequest -UseBasicParsing -Uri https://api.apis.guru/v2/list.json | ConvertFrom-Json) {
     foreach ($ApiName in $ApiList.PSObject.Properties.Name) {
         foreach ($Version in $ApiList.$ApiName.versions.PSObject.Properties.Name) {
-            $ApiName, $Version = $ApiName, $Version | Rename-InvalidFileNameChars
-            $ModuleDir = "$ApiName-$Version"
+            $FsApiName, $FsVersion = $ApiName, $Version | Rename-InvalidFileNameChars
+            $ModuleDir = "$FsApiName-$FsVersion"
             $CurrOutDir = Join-Path $OutDir $ModuleDir
 
             & .\Build.ps1 -OutDir $CurrOutDir -ApiName $ApiName -Version $Version -SkipInit
 
-            Invoke-PesterInAppVeyor -Name $ModuleDir -TestPath "$CurrOutDir\$ApiName\PowerShell\src\IO.Swagger.Tests.ps1"
+            Invoke-PesterInAppVeyor -Name $ModuleDir -TestPath "$CurrOutDir\$FsApiName\PowerShell\src\IO.Swagger.Tests.ps1"
             
             Compress-Archive -Path $CurrOutDir -DestinationPath "$CurrOutDir\$ModuleDir.zip"
             Push-AppveyorArtifact "$CurrOutDir\$ModuleDir.zip"
