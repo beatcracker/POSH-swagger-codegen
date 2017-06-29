@@ -23,6 +23,9 @@
 .Parameter SkipInit
     Do not install prerequisites / build Swagger Codegen.
 
+.Parameter PassThru
+    Output path to generated module
+
 .Example
     Build.ps1
 
@@ -51,7 +54,9 @@ Param (
 
     [string]$OutDir = $PSScriptRoot,
 
-    [switch]$SkipInit
+    [switch]$SkipInit,
+
+    [switch]$PassThru
 )
 
 $FC = @{
