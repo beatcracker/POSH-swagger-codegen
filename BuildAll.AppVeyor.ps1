@@ -146,7 +146,7 @@ Write-Host 'Cloning Swagger-Codegen repo' @FC
 & .\Install-SwaggerCodegenRepository.ps1
 
 Write-Host 'Building Swagger-Codegen' @FC
-& .\Initialize-SwaggerCodegen.ps1 2>&1 $null
+& .\Initialize-SwaggerCodegen.ps1 *> $null
 
 
 if ($ApiList = Invoke-WebRequest -UseBasicParsing -Uri https://api.apis.guru/v2/list.json | ConvertFrom-Json) {
