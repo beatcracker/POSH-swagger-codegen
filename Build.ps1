@@ -9,6 +9,11 @@
 
     * If InFile parameter is used to specify custom Swagger spec file, ApiName is used as target directory name and for guid generation.
 
+.Parameter Version
+    If API has several versions in APIs.guru directory, you can specify which one to build.
+    If not specified, 'preferred' version will be used, if exists.
+    If no preferred version exists for API, most recent one will be used.
+
 .Parameter InFile
     Custom Swagger spec file to generate API client from.
 
@@ -34,6 +39,9 @@ Param (
     [Parameter(ParameterSetName = 'Name')]
     [Parameter(Mandatory = $true, ParameterSetName = 'File')]
     [string]$ApiName = 'xkcd.com',
+
+    [Parameter(ParameterSetName = 'Name')]
+    [string]$Version,
 
     [Parameter(Mandatory = $true, ParameterSetName = 'File')]
     [ValidateScript({
@@ -70,6 +78,7 @@ $Guid = & .\New-DeterministicGuid.ps1 -ApiName $ApiName
 
 $CSharp = @{
     ApiName = $ApiName
+    Version = $Version
     OutDir = Join-Path $OutDir "$ApiName\CSharp"
     Language = 'csharp'
     Properties = "packageGuid={$Guid}"
@@ -78,6 +87,7 @@ $CSharp = @{
 
 $PowerShell = @{
     ApiName = $ApiName
+    Version = $Version
     OutDir = Join-Path $OutDir "$ApiName\PowerShell"
     Language = 'powershell'
     Properties = 'packageGuid={0},csharpClientPath=$ScriptDir\..\CSharp' -f $Guid
