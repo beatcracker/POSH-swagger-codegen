@@ -75,11 +75,13 @@ if (!$SkipInit) {
 $OutDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutDir)
 $SwaggerJar = '.\swagger-codegen\modules\swagger-codegen-cli\target\swagger-codegen-cli.jar'
 $Guid = & .\New-DeterministicGuid.ps1 -ApiName $ApiName
+# Cludge
+$FsApiName = $ApiName -replace ':', '-'
 
 $CSharp = @{
     ApiName = $ApiName
     Version = $Version
-    OutDir = Join-Path $OutDir "$ApiName\CSharp"
+    OutDir = Join-Path $OutDir "$FsApiName\CSharp"
     Language = 'csharp'
     Properties = "packageGuid={$Guid}"
     SwaggerJar = $SwaggerJar
@@ -88,7 +90,7 @@ $CSharp = @{
 $PowerShell = @{
     ApiName = $ApiName
     Version = $Version
-    OutDir = Join-Path $OutDir "$ApiName\PowerShell"
+    OutDir = Join-Path $OutDir "$FsApiName\PowerShell"
     Language = 'powershell'
     Properties = 'packageGuid={0},csharpClientPath=$ScriptDir\..\CSharp' -f $Guid
     SwaggerJar = $SwaggerJar
@@ -116,4 +118,4 @@ Write-Host 'Generating tests' @FC
 & .\New-SwaggerClientTests.ps1 @PowerShell
 
 Write-Host "Run this to import generated PowerShell module: " @FC -NoNewline
-Write-Host "Import-Module -Name $(Join-Path $OutDir "$ApiName\PowerShell\src\IO.Swagger") -Verbose" -ForegroundColor DarkYellow
+Write-Host "Import-Module -Name $(Join-Path $OutDir "$FsApiName\PowerShell\src\IO.Swagger") -Verbose" -ForegroundColor DarkYellow
