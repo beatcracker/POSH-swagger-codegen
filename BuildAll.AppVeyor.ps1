@@ -154,7 +154,7 @@ if ($ApiList = Invoke-WebRequest -UseBasicParsing -Uri https://api.apis.guru/v2/
 
             if ($CurrModuleDir = & .\Build.ps1 -OutDir $CurrOutDir -ApiName $ApiName -Version $Version -SkipInit -PassThru) {
                 Invoke-PesterInAppVeyor -Name $ModuleDir -TestPath (
-                    ("$CurrModuleDir\PowerShell\src\IO.Swagger.Tests.ps1" | Resolve-Path).ProviderPath
+                    ("$CurrModuleDir\src\IO.Swagger.Tests.ps1" | Resolve-Path).ProviderPath
                 )
             
                 Compress-Archive -Path $CurrOutDir -DestinationPath "$CurrOutDir\$ModuleDir.zip"
