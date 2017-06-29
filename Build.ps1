@@ -59,15 +59,11 @@ $FC = @{
 }
 
 if (!$SkipInit) {
-    if ([System.Convert]::ToBoolean($env:APPVEYOR )) {
-        Write-Host 'We''re in AppVeyor: skipping Chocolatey/JDK/Maven installation' @FC
-    } else {
-        Write-Host 'Installing Chocolatey' @FC
-        & .\Install-Chocolatey.ps1
+    Write-Host 'Installing Chocolatey' @FC
+    & .\Install-Chocolatey.ps1
 
-        Write-Host 'Installing JDK and Maven' @FC
-        & .\Install-Prerequisites.ps1
-    }
+    Write-Host 'Installing JDK and Maven' @FC
+    & .\Install-Prerequisites.ps1
     
     Write-Host 'Cloning Swagger-Codegen repo' @FC
     & .\Install-SwaggerCodegenRepository.ps1

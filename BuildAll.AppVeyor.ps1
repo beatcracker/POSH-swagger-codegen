@@ -137,22 +137,31 @@ function Invoke-PesterInAppVeyor {
     }
 }
 
-# First module build installs and builds prerequisites
-$SkipInit = $false
+
+$FC = @{
+    ForegroundColor = 'Magenta'
+}
+
+Write-Host 'Cloning Swagger-Codegen repo' @FC
+& .\Install-SwaggerCodegenRepository.ps1
+
+Write-Host 'Building Swagger-Codegen' @FC
+& .\Initialize-SwaggerCodegen.ps1 2>&1 $null
+
 
 if ($ApiList = Invoke-WebRequest -UseBasicParsing -Uri https://api.apis.guru/v2/list.json | ConvertFrom-Json) {
     foreach ($ApiName in $ApiList.PSObject.Properties.Name) {
         foreach ($Version in $ApiList.$ApiName.versions.PSObject.Properties.Name) {
-            $ModuleDir = "$ApiName-$Version" | Rename-InvalidFileNameChars
+            $ApiName, $Version = $ApiName, $Version | Rename-InvalidFileNameChars
+            $ModuleDir = "$ApiName-$Version"
             $CurrOutDir = Join-Path $OutDir $ModuleDir
 
-            & .\Build.ps1 -OutDir $CurrOutDir -ApiName $ApiName -Version $Version -SkipInit:$SkipInit
+            & .\Build.ps1 -OutDir $CurrOutDir -ApiName $ApiName -Version $Version -SkipInit
 
             Invoke-PesterInAppVeyor -Name $ModuleDir -TestPath "$CurrOutDir\$ApiName\PowerShell\src\IO.Swagger.Tests.ps1"
-            Push-AppveyorArtifact 
-
-            # Skip prerequisites on subsequent builds
-            $SkipInit = $true
+            
+            Compress-Archive -Path $CurrOutDir -DestinationPath "$CurrOutDir\$ModuleDir.zip"
+            Push-AppveyorArtifact "$CurrOutDir\$ModuleDir.zip"
         }
     }
 }
