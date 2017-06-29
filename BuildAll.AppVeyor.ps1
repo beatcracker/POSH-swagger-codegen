@@ -3,6 +3,18 @@ Param (
     [string]$OutDir = '.\BuildResults'
 )
 
+filter Rename-InvalidFileNameChars {
+    Param (
+        [char]$Replacement = '-'
+    )
+
+    foreach ($char in [System.IO.Path]::GetInvalidFileNameChars()) {
+        $_ = $_.Replace($char, $Replacement)
+    }
+
+    $_
+}
+
 function Invoke-PesterInJob {
     [CmdletBinding()]
     Param (
@@ -131,12 +143,14 @@ $SkipInit = $false
 if ($ApiList = Invoke-WebRequest -UseBasicParsing -Uri https://api.apis.guru/v2/list.json | ConvertFrom-Json) {
     foreach ($ApiName in $ApiList.PSObject.Properties.Name) {
         foreach ($Version in $ApiList.$ApiName.versions.PSObject.Properties.Name) {
-            $CurrOutDir = Join-Path $OutDir "$ApiName-$Version" 
+            $ModuleDir = "$ApiName-$Version" | Rename-InvalidFileNameChars
+            $CurrOutDir = Join-Path $OutDir $ModuleDir
 
             & .\Build.ps1 -OutDir $CurrOutDir -ApiName $ApiName -Version $Version -SkipInit:$SkipInit
 
-            Invoke-PesterInAppVeyor -Name "$ApiName-$Version" -TestPath "$CurrOutDir\$ApiName\PowerShell\src\IO.Swagger.Tests.ps1"
-            
+            Invoke-PesterInAppVeyor -Name $ModuleDir -TestPath "$CurrOutDir\$ApiName\PowerShell\src\IO.Swagger.Tests.ps1"
+            Push-AppveyorArtifact 
+
             # Skip prerequisites on subsequent builds
             $SkipInit = $true
         }
