@@ -143,7 +143,7 @@ $FC = @{
 }
 
 Write-Host 'Cloning Swagger-Codegen repo' @FC
-& .\Install-SwaggerCodegenRepository.ps1
+& .\Install-SwaggerCodegenRepository.ps1 *> $null
 
 Write-Host 'Building Swagger-Codegen' @FC
 & .\Initialize-SwaggerCodegen.ps1 *> $null
