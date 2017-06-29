@@ -110,6 +110,10 @@ if ('File' -eq $PSCmdlet.ParameterSetName) {
     $PowerShell.InFile = $InFile
 }
 
+if ($PassThru) {
+    $PowerShell.PassThru = $true
+}
+
 Write-Host 'Generating C# client dependency' @FC
 & .\New-SwaggerClient.ps1 @CSharp
 
