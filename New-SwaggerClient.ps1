@@ -59,7 +59,6 @@ End {
     $RemoveInFile = $false
 
     if ('Name' -eq $PSCmdlet.ParameterSetName) {
-        $RemoveInFile = $true
         $ApiList = Invoke-WebRequest -UseBasicParsing -Uri https://api.apis.guru/v2/list.json | ConvertFrom-Json
         if ($ApiList.$ApiName) {
             $ApiUrl = if ($PreferredVersion = $ApiList.$ApiName.preferred) {
@@ -71,6 +70,8 @@ End {
             }
 
             $InFile = [System.IO.Path]::GetTempFileName()
+            $RemoveInFile = $true
+
             Invoke-WebRequest -UseBasicParsing -Uri $ApiUrl -OutFile $InFile
 
         } else {
