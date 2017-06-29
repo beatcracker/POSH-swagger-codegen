@@ -102,5 +102,8 @@ Write-Host 'Generating PowerShell client' @FC
 Write-Host 'Building C# assemblies and PowerShell client' @FC
 & (Join-Path $PowerShell.OutDir 'Build.ps1')
 
+Write-Host 'Generating tests' @FC
+& .\New-SwaggerClientTests.ps1 @PowerShell
+
 Write-Host "Run this to import generated PowerShell module: " @FC -NoNewline
-Write-Host "Import-Module -Name $(Join-Path $OutDir  "$ApiName\PowerShell\src\IO.Swagger") -Verbose" -ForegroundColor DarkYellow
+Write-Host "Import-Module -Name $(Join-Path $OutDir "$ApiName\PowerShell\src\IO.Swagger") -Verbose" -ForegroundColor DarkYellow
