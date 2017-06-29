@@ -35,7 +35,7 @@ function Invoke-PesterInJob {
             $ResultPath
         )
 
-        Import-Module Pester -Force -ErrorAction Stop | Out-Null
+        Import-Module Pester -Force -ErrorAction Stop #| Out-Null
         Invoke-Pester -Path $TestPath -OutputFormat NUnitXml -OutputFile $ResultPath -PassThru
 
     } -ArgumentList $TestPath, $ResultPath
