@@ -29,19 +29,16 @@ function Invoke-PesterInJob {
         [string]$ResultPath
     )
 
-    $PesterPath = Get-Module Pester | Select-Object -First 1 -ExpandProperty Path
-
     $PesterJob = Start-Job {
         Param (
-            $PesterPath,
             $TestPath,
             $ResultPath
         )
 
-        Import-Module $PesterPath -Force -ErrorAction Stop | Out-Null
+        Import-Module Pester -Force -ErrorAction Stop | Out-Null
         Invoke-Pester -Path $TestPath -OutputFormat NUnitXml -OutputFile $ResultPath -PassThru
 
-    } -ArgumentList $PesterPath, $TestPath, $ResultPath
+    } -ArgumentList $TestPath, $ResultPath
 
     $PesterJob | Wait-Job | Out-Null
 
@@ -137,6 +134,7 @@ function Invoke-PesterInAppVeyor {
     }
 }
 
+exit
 
 $FC = @{
     ForegroundColor = 'Magenta'
@@ -154,7 +152,7 @@ if ($ApiList = Invoke-WebRequest -UseBasicParsing -Uri https://api.apis.guru/v2/
         foreach ($Version in $ApiList.$ApiName.versions.PSObject.Properties.Name) {
             $FsApiName, $FsVersion = $ApiName, $Version | Rename-InvalidFileNameChars
             $ModuleDir = "$FsApiName-$FsVersion"
-            $CurrOutDir = Join-Path $OutDir $ModuleDir
+            $CurrOutDir = (Join-Path $OutDir $ModuleDir | Resolve-Path).ProviderPath
 
             & .\Build.ps1 -OutDir $CurrOutDir -ApiName $ApiName -Version $Version -SkipInit
 
