@@ -123,7 +123,7 @@ function Invoke-PesterInAppVeyor {
     )
 
     Add-AppveyorTest -Name $Name -Outcome Running
-    $TestResults = Join-Path $TestPath "$Name.xml"
+    $TestResults = Join-Path (Split-Path $TestPath) "$Name.xml"
     $ret = Invoke-PesterInJob -TestPath $TestPath -ResultPath $TestResults
     Add-TestResultToAppveyor -TestFile $TestResults
     if ($ret.FailedCount -gt 0) {
