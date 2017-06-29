@@ -134,8 +134,6 @@ function Invoke-PesterInAppVeyor {
     }
 }
 
-exit
-
 $FC = @{
     ForegroundColor = 'Magenta'
 }
