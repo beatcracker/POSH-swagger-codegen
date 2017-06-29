@@ -8,7 +8,7 @@ filter Rename-InvalidFileNameChars {
         [char]$Replacement = '-'
     )
 
-    foreach ($char in [System.IO.Path]::GetInvalidFileNameChars()) {
+    foreach ($char in [char[]]([System.IO.Path]::GetInvalidFileNameChars() + ':' )) {
         $_ = $_.Replace($char, $Replacement)
     }
 
