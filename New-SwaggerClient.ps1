@@ -13,6 +13,11 @@
 
     * If InFile parameter is used to specify custom Swagger spec file, ApiName is used as target directory name and for guid generation.
 
+.Parameter Version
+    If API has several versions in APIs.guru directory, you can specify which one to build.
+    If not specified, 'preferred' version will be used, if exists.
+    If no preferred version exists for API, most recent one will be used.
+
 .Parameter InFile
     Custom Swagger spec file to generate API client from.
 
@@ -33,6 +38,9 @@ Param (
     [Parameter(Mandatory = $true, ParameterSetName = 'Name')]
     [Parameter(Mandatory = $true, ParameterSetName = 'File')]
     [string]$ApiName,
+
+    [Parameter(ParameterSetName = 'Name')]
+    [string]$Version,
 
     [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'File')]
     [ValidateScript({
@@ -61,7 +69,9 @@ End {
     if ('Name' -eq $PSCmdlet.ParameterSetName) {
         $ApiList = Invoke-WebRequest -UseBasicParsing -Uri https://api.apis.guru/v2/list.json | ConvertFrom-Json
         if ($ApiList.$ApiName) {
-            $ApiUrl = if ($PreferredVersion = $ApiList.$ApiName.preferred) {
+            $ApiUrl = if ($Version) {
+                $ApiList.$ApiName.versions.$Version.swaggerYamlUrl
+            } elseif ($PreferredVersion = $ApiList.$ApiName.preferred) {
                 $ApiList.$ApiName.versions.$PreferredVersion.swaggerYamlUrl
             } else {
                 $ApiList.$ApiName.versions.PSObject.Properties.Name | ForEach-Object {
@@ -69,10 +79,14 @@ End {
                 } | Sort-Object -Property added -Descending | Select-Object -First 1 -ExpandProperty swaggerYamlUrl
             }
 
-            $InFile = [System.IO.Path]::GetTempFileName()
-            $RemoveInFile = $true
+            if ($ApiUrl) {
+                $InFile = [System.IO.Path]::GetTempFileName()
+                $RemoveInFile = $true
 
-            Invoke-WebRequest -UseBasicParsing -Uri $ApiUrl -OutFile $InFile
+                Invoke-WebRequest -UseBasicParsing -Uri $ApiUrl -OutFile $InFile -ErrorAction Stop
+            } else {
+                throw "Can't find API version '$Version' for '$ApiName'"
+            }
 
         } else {
             throw "API not found: $ApiName"
