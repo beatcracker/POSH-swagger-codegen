@@ -6,7 +6,7 @@ environment:
 
 install:
   - ps: Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Confirm:$false -Force -ErrorAction Stop
-  - ps: Install-Module -Name Pester -Force
+  - ps: Install-Module -Name Pester -Force -SkipPublisherCheck
   - ps: Install-Module -Name PSScriptAnalyzer -Force
 
 build: false
