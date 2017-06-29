@@ -32,6 +32,9 @@
 
 .Parameter SwaggerJar
     Path to swagger-codegen-cli.jar
+
+.Parameter PassThru
+    Output path to generated module
 #>
 [CmdletBinding(DefaultParameterSetName = 'Name')]
 Param (
@@ -60,7 +63,9 @@ Param (
     [ValidateScript({
         Test-Path -Path $_ -PathType Leaf        
     })]
-    [string]$SwaggerJar
+    [string]$SwaggerJar,
+
+    [switch]$PassThru
 )
 
 End {
@@ -93,6 +98,7 @@ End {
         }
     }
 
+    $OutDirAbsolute = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutDir)
     $Arguments =  @(
         '-jar',
         ($SwaggerJar | Resolve-Path).ProviderPath
@@ -102,7 +108,7 @@ End {
         '-l'
         $Language
         '-o'
-        $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutDir)
+        $OutDirAbsolute
     )
 
     if ($Properties) {
@@ -116,6 +122,10 @@ End {
 
     if ($LASTEXITCODE) {
         $ret | Out-String | Write-Error
+    } else {
+        if ($PassThru) {
+            $OutDirAbsolute
+        }
     }
 
     if ($RemoveInFile) {
