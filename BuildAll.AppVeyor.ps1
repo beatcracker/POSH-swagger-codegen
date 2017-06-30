@@ -189,7 +189,9 @@ if ($ApiList = Invoke-WebRequest -UseBasicParsing -Uri https://api.apis.guru/v2/
                 } else {
                     Write-Error "Failed to build module: $ModuleDir"
                 }
-            } -ArgumentList $CurrOutDir, $ApiName $Version, $ModuleDir
+            } -ArgumentList $CurrOutDir, $ApiName, $Version, $ModuleDir 
         }
     }
 }
+
+Receive-Job -Job (Get-Job) -Wait -AutoRemoveJob
