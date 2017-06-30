@@ -102,6 +102,7 @@ $PowerShell = @{
 }
 
 Write-Host "Target API name: $ApiName" @FC
+Write-Host "Target API version: $(($Version, 'not set')[!$Version])" @FC
 
 if ('File' -eq $PSCmdlet.ParameterSetName) {
     Write-Host "Target API file: $InFile" @FC
