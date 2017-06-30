@@ -95,7 +95,8 @@ if ($ApiList = Invoke-WebRequest -UseBasicParsing -Uri https://api.apis.guru/v2/
                     $CurrOutDir,
                     $ApiName,
                     $Version,
-                    $ModuleDir
+                    $ModuleDir,
+                    $BaseDir
                 )
 
                 function Invoke-PesterInAppVeyor {
@@ -178,6 +179,7 @@ if ($ApiList = Invoke-WebRequest -UseBasicParsing -Uri https://api.apis.guru/v2/
                     }
                 }
 
+                Push-Location $BaseDir
 
                 if ($CurrModuleDir = & .\Build.ps1 -OutDir $CurrOutDir -ApiName $ApiName -Version $Version -SkipInit -PassThru) {
                     Invoke-PesterInAppVeyor -Name $ModuleDir -TestPath (
@@ -189,7 +191,7 @@ if ($ApiList = Invoke-WebRequest -UseBasicParsing -Uri https://api.apis.guru/v2/
                 } else {
                     Write-Error "Failed to build module: $ModuleDir"
                 }
-            } -ArgumentList $CurrOutDir, $ApiName, $Version, $ModuleDir 
+            } -ArgumentList $CurrOutDir, $ApiName, $Version, $ModuleDir, (Split-Path -Path $script:MyInvocation.MyCommand.Path)
         }
     }
 }
