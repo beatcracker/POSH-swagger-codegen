@@ -54,85 +54,22 @@ function Invoke-PesterInJob {
     $PesterJob | Remove-Job
 }
 
-function Add-TestResultToAppveyor {
-    <#
-    .SYNOPSIS
-        Upload test results to AppVeyor
-
-    .DESCRIPTION
-        Upload test results to AppVeyor
-
-    .EXAMPLE
-        Add-TestResultToAppVeyor -TestFile C:\testresults.xml
-
-    .LINK
-        https://github.com/RamblingCookieMonster/BuildHelpers
-
-    .LINK
-        about_BuildHelpers
-    #>
-    [CmdletBinding()]
-    [OutputType([void])]
-    Param (
-        # Appveyor Job ID
-        [String]
-        $APPVEYOR_JOB_ID = $Env:APPVEYOR_JOB_ID,
-
-        [ValidateSet('mstest','xunit','nunit','nunit3','junit')]
-        $ResultType = 'nunit',
-
-        # List of files to be uploaded
-        [Parameter(Mandatory,
-                   Position,
-                   ValueFromPipeline,
-                   ValueFromPipelineByPropertyName,
-                   ValueFromRemainingArguments
-        )]
-        [Alias("FullName")]
-        [string[]]
-        $TestFile
-    )
-
-    begin {
-            $wc = New-Object 'System.Net.WebClient'
-    }
-
-    process {
-        foreach ($File in $TestFile) {
-            if (Test-Path $File) {
-                Write-Verbose "Uploading $File for Job ID: $APPVEYOR_JOB_ID"
-                $wc.UploadFile("https://ci.appveyor.com/api/testresults/$ResultType/$($APPVEYOR_JOB_ID)", $File)
-            }
-        }
-    }
-
-    end {
-        $wc.Dispose()
-    }
-}
 
 
-function Invoke-PesterInAppVeyor {
+
+
+function Throttle-Jobs {
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $true)]
-        [string]$Name,
-
-        [Parameter(Mandatory = $true)]
-        [string]$TestPath
+        [int] $MaxJobs = 25,
+        [TimeSpan]$SleepInterval = [TimeSpan]::FromSeconds(1)  
+      
     )
-
-    Add-AppveyorTest -Name $Name -Outcome Running
-    $TestResults = Join-Path (Split-Path $TestPath) "$Name.xml"
-    $ret = Invoke-PesterInJob -TestPath $TestPath -ResultPath $TestResults
-    Add-TestResultToAppveyor -TestFile $TestResults
-    if ($ret.FailedCount -gt 0) {
-        Add-AppveyorMessage -Message "${Name}: $($ret.FailedCount) tests failed." -Category Error
-        Update-AppveyorTest -Name 'Pester' -Outcome Failed -ErrorMessage "$($ret.FailedCount) tests failed."
-    } else {
-        Update-AppveyorTest -Name $Name -Outcome Passed
-    }
-}
+      
+    while ( (Get-Job -State Running | Measure-Object).Count -gt $MaxJobs ) {  
+        Start-Sleep -Milliseconds $SleepInterval.TotalMilliseconds  
+    }  
+}  
 
 $FC = @{
     ForegroundColor = 'Magenta'
@@ -152,16 +89,107 @@ if ($ApiList = Invoke-WebRequest -UseBasicParsing -Uri https://api.apis.guru/v2/
             $ModuleDir = "$FsApiName-$FsVersion"
             $CurrOutDir = Join-Path $OutDir $ModuleDir
 
-            if ($CurrModuleDir = & .\Build.ps1 -OutDir $CurrOutDir -ApiName $ApiName -Version $Version -SkipInit -PassThru) {
-                Invoke-PesterInAppVeyor -Name $ModuleDir -TestPath (
-                    ("$CurrModuleDir\src\IO.Swagger.Tests.ps1" | Resolve-Path).ProviderPath
+            Throttle-Jobs -MaxJobs 4 -SleepInterval ([timespan]::FromSeconds(25))
+            Start-Job -Name $ModuleDir -ScriptBlock {
+                Param (
+                    $CurrOutDir,
+                    $ApiName,
+                    $Version,
+                    $ModuleDir
                 )
+
+                function Invoke-PesterInAppVeyor {
+                    [CmdletBinding()]
+                    Param (
+                        [Parameter(Mandatory = $true)]
+                        [string]$Name,
+
+                        [Parameter(Mandatory = $true)]
+                        [string]$TestPath
+                    )
+
+                    Add-AppveyorTest -Name $Name -Outcome Running
+                    $TestResults = Join-Path (Split-Path $TestPath) "$Name.xml"
+                    $ret = Invoke-Pester -Path $TestPath -OutputFormat NUnitXml -OutputFile $TestResults -PassThru
+                    Add-TestResultToAppveyor -TestFile $TestResults
+                    if ($ret.FailedCount -gt 0) {
+                        Add-AppveyorMessage -Message "${Name}: $($ret.FailedCount) tests failed." -Category Error
+                        Update-AppveyorTest -Name 'Pester' -Outcome Failed -ErrorMessage "$($ret.FailedCount) tests failed."
+                    } else {
+                        Update-AppveyorTest -Name $Name -Outcome Passed
+                    }
+                }
+
+
+                function Add-TestResultToAppveyor {
+                    <#
+                    .SYNOPSIS
+                        Upload test results to AppVeyor
+
+                    .DESCRIPTION
+                        Upload test results to AppVeyor
+
+                    .EXAMPLE
+                        Add-TestResultToAppVeyor -TestFile C:\testresults.xml
+
+                    .LINK
+                        https://github.com/RamblingCookieMonster/BuildHelpers
+
+                    .LINK
+                        about_BuildHelpers
+                    #>
+                    [CmdletBinding()]
+                    [OutputType([void])]
+                    Param (
+                        # Appveyor Job ID
+                        [String]
+                        $APPVEYOR_JOB_ID = $Env:APPVEYOR_JOB_ID,
+
+                        [ValidateSet('mstest','xunit','nunit','nunit3','junit')]
+                        $ResultType = 'nunit',
+
+                        # List of files to be uploaded
+                        [Parameter(Mandatory,
+                                   Position,
+                                   ValueFromPipeline,
+                                   ValueFromPipelineByPropertyName,
+                                   ValueFromRemainingArguments
+                        )]
+                        [Alias("FullName")]
+                        [string[]]
+                        $TestFile
+                    )
+
+                    begin {
+                        $wc = New-Object 'System.Net.WebClient'
+                    }
+
+                    process {
+                        foreach ($File in $TestFile) {
+                            if (Test-Path $File) {
+                                Write-Verbose "Uploading $File for Job ID: $APPVEYOR_JOB_ID"
+                                $wc.UploadFile("https://ci.appveyor.com/api/testresults/$ResultType/$($APPVEYOR_JOB_ID)", $File)
+                            }
+                        }
+                    }
+
+                    end {
+                        $wc.Dispose()
+                    }
+                }
+
+
+                if ($CurrModuleDir = & .\Build.ps1 -OutDir $CurrOutDir -ApiName $ApiName -Version $Version -SkipInit -PassThru) {
+                    Invoke-PesterInAppVeyor -Name $ModuleDir -TestPath (
+                        ("$CurrModuleDir\src\IO.Swagger.Tests.ps1" | Resolve-Path).ProviderPath
+                    )
             
-                Compress-Archive -Path $CurrOutDir -DestinationPath "$CurrOutDir\$ModuleDir.zip"
-                Push-AppveyorArtifact "$CurrOutDir\$ModuleDir.zip"
-            } else {
-                Write-Error "Failed to build module: $ModuleDir"
-            }
+                    Compress-Archive -Path $CurrOutDir -DestinationPath "$CurrOutDir\$ModuleDir.zip"
+                    Push-AppveyorArtifact "$CurrOutDir\$ModuleDir.zip"
+                } else {
+                    Write-Error "Failed to build module: $ModuleDir"
+                }
+            } -ArgumentList $CurrOutDir, $ApiName $Version, $ModuleDir
         }
     }
 }
