@@ -53,3 +53,18 @@ Build `instagram.com` module from file
 ```posh
 .\Build.ps1 -ApiName instagram.com -InFile .\path\to\spec\swagger.yml -SkipInit
 ```
+
+## Issues
+
+If you're getting errors about NuGet version, like this one:
+
+```none
+The 'Newtonsoft.Json 10.0.3' package requires NuGet client version '2.12' or above,
+but the current NuGet version is '2.8.60717.93'.
+```
+
+run `.\Build.ps1` with `-FixCSharBuild` parameter.
+
+See this issue in Swagger Codgen repo for details:
+
+* [[CSharp] Can't build client using "build.bat"](https://github.com/swagger-api/swagger-codegen/issues/6022)
