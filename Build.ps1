@@ -26,6 +26,11 @@
 .Parameter PassThru
     Output path to generated module
 
+.Parameter FixCSharpBuild
+    Use workaround for C# client build issue:
+    
+    https://github.com/swagger-api/swagger-codegen/issues/6022
+
 .Example
     Build.ps1
 
@@ -56,7 +61,9 @@ Param (
 
     [switch]$SkipInit,
 
-    [switch]$PassThru
+    [switch]$PassThru,
+
+    [switch]$FixCSharpBuild
 )
 
 $FC = @{
@@ -77,11 +84,15 @@ if (!$SkipInit) {
     & .\Initialize-SwaggerCodegen.ps1
 }
 
+$SwaggerJar = ('.\swagger-codegen\modules\swagger-codegen-cli\target\swagger-codegen-cli.jar' | Resolve-Path).ProviderPath
 $OutDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutDir)
-$SwaggerJar = '.\swagger-codegen\modules\swagger-codegen-cli\target\swagger-codegen-cli.jar'
 $Guid = & .\New-DeterministicGuid.ps1 -ApiName $ApiName
 # Cludge
 $FsApiName = $ApiName -replace ':', '-'
+
+if (!(Test-Path -Path $SwaggerJar -PathType Leaf)) {
+    throw "Can't find Swagger Codegen at path: $SwaggerJar"
+}
 
 $CSharp = @{
     ApiName = $ApiName
@@ -90,6 +101,7 @@ $CSharp = @{
     Language = 'csharp'
     Properties = "packageGuid={$Guid}"
     SwaggerJar = $SwaggerJar
+    PassThru = $PassThru
 }
 
 $PowerShell = @{
@@ -99,6 +111,7 @@ $PowerShell = @{
     Language = 'powershell'
     Properties = 'packageGuid={0},csharpClientPath=$ScriptDir\..\CSharp' -f $Guid
     SwaggerJar = $SwaggerJar
+    PassThru = $PassThru
 }
 
 Write-Host "Target API name: $ApiName" @FC
@@ -111,15 +124,30 @@ if ('File' -eq $PSCmdlet.ParameterSetName) {
     $PowerShell.InFile = $InFile
 }
 
-if ($PassThru) {
-    $PowerShell.PassThru = $true
-}
-
 Write-Host 'Generating C# client dependency' @FC
-& .\New-SwaggerClient.ps1 @CSharp
+$CSharpClientPath = & .\New-SwaggerClient.ps1 @CSharp
 
 Write-Host 'Generating PowerShell client' @FC
-& .\New-SwaggerClient.ps1 @PowerShell
+$PoshClientPath = & .\New-SwaggerClient.ps1 @PowerShell
+
+if ($PassThru) {
+    $PoshClientPath
+}
+
+if ($FixCSharpBuild) {
+    $NuGetPath = '.\Nuget'
+    $NuGetExe = 'nuget.exe'
+
+    if (! (Test-Path -Path "$NuGetPath\$NuGetExe")) {
+        Write-Host "Downloading lastest NuGet binary to $NuGetPath\$NuGetExe" -ForegroundColor DarkGray
+
+        New-Item -Path $NuGetPath -ItemType Directory  -ErrorAction SilentlyContinue > $null
+        Invoke-WebRequest -UseBasicParsing -Uri 'https://dist.nuget.org/win-x86-commandline/latest/nuget.exe' -OutFile "$NuGetPath\$NuGetExe"
+    }
+    
+    Write-Host "Copying NuGet binary to: $BuildBatPath\$NuGetExe" -ForegroundColor DarkGray
+    Copy-Item -Path "$NuGetPath\$NuGetExe" -Destination "$BuildBatPath\$NuGetExe" -Force
+}
 
 Write-Host 'Building C# assemblies and PowerShell client' @FC
 & (Join-Path $PowerShell.OutDir 'Build.ps1')
