@@ -54,7 +54,7 @@ Build `instagram.com` module from file
 .\Build.ps1 -ApiName instagram.com -InFile .\path\to\spec\swagger.yml -SkipInit
 ```
 
-## Issues
+# Issues
 
 If you're getting errors about NuGet version, like this one:
 
