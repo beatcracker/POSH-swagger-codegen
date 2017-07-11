@@ -63,7 +63,7 @@ The 'Newtonsoft.Json 10.0.3' package requires NuGet client version '2.12' or abo
 but the current NuGet version is '2.8.60717.93'.
 ```
 
-run `.\Build.ps1` with `-FixCSharBuild` parameter.
+run `.\Build.ps1` with `-FixCSharpBuild` parameter.
 
 See this issue in Swagger Codegen repo for details:
 
