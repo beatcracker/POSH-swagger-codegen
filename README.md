@@ -65,6 +65,6 @@ but the current NuGet version is '2.8.60717.93'.
 
 run `.\Build.ps1` with `-FixCSharBuild` parameter.
 
-See this issue in Swagger Codgen repo for details:
+See this issue in Swagger Codegen repo for details:
 
 * [[CSharp] Can't build client using "build.bat"](https://github.com/swagger-api/swagger-codegen/issues/6022)
