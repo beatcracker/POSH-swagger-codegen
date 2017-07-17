@@ -1,4 +1,4 @@
-﻿<#
+<#
 .Synopsis
     Build Swagger Codegen
 #>

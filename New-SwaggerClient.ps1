@@ -1,4 +1,4 @@
-﻿<#
+<#
 .Synopsis
     Generate new API client with Swagger Codegen.
 

@@ -1,4 +1,4 @@
-﻿<#
+<#
 .Synopsis
     Install dependencies, build Swagger Codegen and generate new API client.
 
