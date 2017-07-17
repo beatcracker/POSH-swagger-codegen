@@ -6,8 +6,8 @@ Swagger Codegen 2.2.3 aims to have PowerShell module generator. Until it's relea
 
 ## Info
 
-* Discussion: [[PowerShell] Add PowerShell API client generator](https://github.com/swagger-api/swagger-codegen/pull/5789)
-* Pull Request: [PowerShell module](https://github.com/swagger-api/swagger-codegen/issues/4320)
+* Discussion: [[PowerShell] Add PowerShell API client generator](https://github.com/swagger-api/swagger-codegen/issues/4320)
+* Pull Request: [PowerShell module](https://github.com/swagger-api/swagger-codegen/pull/5789)
 
 # Details
 
