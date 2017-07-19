@@ -20,16 +20,11 @@
 .Parameter OutDir
     Output directory for generated module.
 
-.Parameter SkipInit
-    Do not install prerequisites / build Swagger Codegen.
+.Parameter UpdateCodegen
+    Update Swagger Codegen repo and rebuild
 
 .Parameter PassThru
     Output path to generated module
-
-.Parameter FixCSharpBuild
-    Use workaround for C# client build issue:
-    
-    https://github.com/swagger-api/swagger-codegen/issues/6022
 
 .Example
     Build.ps1
@@ -59,39 +54,65 @@ Param (
 
     [string]$OutDir = $PSScriptRoot,
 
-    [switch]$SkipInit,
+    [switch]$UpdateCodegen,
 
-    [switch]$PassThru,
-
-    [switch]$FixCSharpBuild
+    [switch]$PassThru
 )
 
 $FC = @{
     ForegroundColor = 'Magenta'
 }
 
-if (!$SkipInit) {
-    Write-Host 'Installing Chocolatey' @FC
-    & .\Install-Chocolatey.ps1
-
-    Write-Host 'Installing JDK and Maven' @FC
-    & .\Install-Prerequisites.ps1
-    
-    Write-Host 'Cloning Swagger-Codegen repo' @FC
-    & .\Install-SwaggerCodegenRepository.ps1
-
-    Write-Host 'Building Swagger-Codegen' @FC
-    & .\Initialize-SwaggerCodegen.ps1
+filter Test-NotInPath {
+    try {
+     !(Get-Command -Name $_ -CommandType Application -ErrorAction Stop)
+    } catch {
+        $true
+    }
 }
 
-$SwaggerJar = ('.\swagger-codegen\modules\swagger-codegen-cli\target\swagger-codegen-cli.jar' | Resolve-Path).ProviderPath
+
+if ('choco.exe' | Test-NotInPath) {
+        Write-Host 'Installing Chocolatey' @FC
+    & .\Install-Chocolatey.ps1
+}
+
+
+@{
+    Maven = 'mvn.exe'
+    JDK = 'jar.exe'
+}.GetEnumerator() | ForEach-Object -Begin {
+    $Prerequisites = @()
+} -Process {
+    if ($_.Value | Test-NotInPath) {
+        $Prerequisites += $_.Key
+    }
+} -End {
+    Write-Host "Installing: $Prerequisites" @FC
+    & .\Install-Prerequisites.ps1 -Prerequisites $Prerequisites
+}
+
+$SwaggerPath = '.\swagger-codegen'
+$SwaggerJarPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath(
+    "$SwaggerPath\modules\swagger-codegen-cli\target\swagger-codegen-cli.jar"
+)
+
+
+if (!(Test-Path -Path $SwaggerJarPath) -or $UpdateCodegen) {
+    Write-Host 'Cloning Swagger-Codegen repo' @FC
+    & .\Install-SwaggerCodegenRepository.ps1 -SwaggerPath $SwaggerPath
+
+    Write-Host 'Building Swagger-Codegen' @FC
+    & .\Initialize-SwaggerCodegen.ps1 -SwaggerPath $SwaggerPath
+}
+
 $OutDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutDir)
 $Guid = & .\New-DeterministicGuid.ps1 -ApiName $ApiName
 # Cludge
 $FsApiName = $ApiName -replace ':', '-'
 
-if (!(Test-Path -Path $SwaggerJar -PathType Leaf)) {
-    throw "Can't find Swagger Codegen at path: $SwaggerJar"
+if (!(Test-Path -Path $SwaggerJarPath -PathType Leaf)) {
+    throw "Can't find Swagger Codegen at path: $SwaggerJarPath"
 }
 
 $CSharp = @{
@@ -100,7 +121,7 @@ $CSharp = @{
     OutDir = Join-Path $OutDir "$FsApiName\CSharp"
     Language = 'csharp'
     Properties = "packageGuid={$Guid}"
-    SwaggerJar = $SwaggerJar
+    SwaggerJarPath = $SwaggerJarPath
     PassThru = $PassThru
 }
 
@@ -110,7 +131,7 @@ $PowerShell = @{
     OutDir = Join-Path $OutDir "$FsApiName\PowerShell"
     Language = 'powershell'
     Properties = 'packageGuid={0},csharpClientPath=$ScriptDir\..\CSharp' -f $Guid
-    SwaggerJar = $SwaggerJar
+    SwaggerJarPath = $SwaggerJarPath
     PassThru = $PassThru
 }
 
@@ -134,20 +155,6 @@ if ($PassThru) {
     $PoshClientPath
 }
 
-if ($FixCSharpBuild) {
-    $NuGetPath = '.\Nuget'
-    $NuGetExe = 'nuget.exe'
-
-    if (! (Test-Path -Path "$NuGetPath\$NuGetExe")) {
-        Write-Host "Downloading lastest NuGet binary to $NuGetPath\$NuGetExe" -ForegroundColor DarkGray
-
-        New-Item -Path $NuGetPath -ItemType Directory  -ErrorAction SilentlyContinue > $null
-        Invoke-WebRequest -UseBasicParsing -Uri 'https://dist.nuget.org/win-x86-commandline/latest/nuget.exe' -OutFile "$NuGetPath\$NuGetExe"
-    }
-    
-    Write-Host "Copying NuGet binary to: $BuildBatPath\$NuGetExe" -ForegroundColor DarkGray
-    Copy-Item -Path "$NuGetPath\$NuGetExe" -Destination "$BuildBatPath\$NuGetExe" -Force
-}
 
 Write-Host 'Building C# assemblies and PowerShell client' @FC
 & (Join-Path $PowerShell.OutDir 'Build.ps1')
