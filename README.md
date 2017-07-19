@@ -43,7 +43,7 @@ If you already run `Build.ps1` script and have all prerequisites, you can build 
 Build `instagram.com` module by API name
 
 ```posh
-.\Build.ps1 -ApiName instagram.com -SkipInit
+.\Build.ps1 -ApiName instagram.com
 ```
 
 ### From custom file
@@ -51,20 +51,14 @@ Build `instagram.com` module by API name
 Build `instagram.com` module from file
 
 ```posh
-.\Build.ps1 -ApiName instagram.com -InFile .\path\to\spec\swagger.yml -SkipInit
+.\Build.ps1 -ApiName instagram.com -InFile .\path\to\spec\swagger.yml
+
 ```
 
-# Issues
+## Update Swagger Codegen
 
-If you're getting errors about NuGet version, like this one:
+To pull latest changes and rebuild Swagger Codegen, add `UpdateCodegen` switch.
 
-```none
-The 'Newtonsoft.Json 10.0.3' package requires NuGet client version '2.12' or above,
-but the current NuGet version is '2.8.60717.93'.
 ```
-
-run `.\Build.ps1` with `-FixCSharpBuild` parameter.
-
-See this issue in Swagger Codegen repo for details:
-
-* [[CSharp] Can't build client using "build.bat"](https://github.com/swagger-api/swagger-codegen/issues/6022)
+.\Build.ps1 -UpdateCodegen
+```
