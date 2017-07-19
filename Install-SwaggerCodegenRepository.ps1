@@ -18,6 +18,8 @@ $Clone = @(
 )
 
 $Pull = @(
+    '-C'
+    $SwaggerPath,
     'pull',
     '--quiet'
 )
