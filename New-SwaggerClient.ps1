@@ -30,7 +30,7 @@
 .Parameter Properties
     Additional properties to pass to swagger-codegen-cli
 
-.Parameter SwaggerJar
+.Parameter SwaggerJarPath
     Path to swagger-codegen-cli.jar
 
 .Parameter PassThru
@@ -63,7 +63,7 @@ Param (
     [ValidateScript({
         Test-Path -Path $_ -PathType Leaf        
     })]
-    [string]$SwaggerJar,
+    [string]$SwaggerJarPath,
 
     [switch]$PassThru
 )
@@ -101,7 +101,7 @@ End {
     $OutDirAbsolute = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutDir)
     $Arguments =  @(
         '-jar',
-        ($SwaggerJar | Resolve-Path).ProviderPath
+        ($SwaggerJarPath | Resolve-Path).ProviderPath
         'generate'
         '-i'
         ($InFile | Resolve-Path).ProviderPath
