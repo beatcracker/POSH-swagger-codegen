@@ -73,8 +73,12 @@ filter Test-NotInPath {
 
 
 if ('choco.exe' | Test-NotInPath) {
-    Write-Host 'Installing Chocolatey' @FC
-    & .\Install-Chocolatey.ps1
+    try {
+        Write-Host 'Installing Chocolatey' @FC
+        & .\Install-Chocolatey.ps1
+    } catch {
+        throw $_
+    }
 }
 
 
@@ -89,8 +93,12 @@ if ('choco.exe' | Test-NotInPath) {
     }
 } -End {
     if ($Prerequisites) {
-        Write-Host "Installing: $Prerequisites" @FC
-        & .\Install-Prerequisites.ps1 -Prerequisites $Prerequisites
+        try {
+            Write-Host "Installing: $Prerequisites" @FC
+            & .\Install-Prerequisites.ps1 -Prerequisites $Prerequisites
+        } catch {
+            throw $_
+        }
     }
 }
 
