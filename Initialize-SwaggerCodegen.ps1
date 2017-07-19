@@ -3,8 +3,13 @@
     Build Swagger Codegen
 #>
 
-Push-Location .\swagger-codegen
+[CmdletBinding()]
+Param (
+    $SwaggerPath = '.\swagger-codegen'
+)
 
-mvn clean package
+Push-Location $SwaggerPath
+
+& 'mvn.exe' @('clean', 'package')
 
 Pop-Location
