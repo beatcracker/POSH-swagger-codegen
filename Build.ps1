@@ -73,7 +73,7 @@ filter Test-NotInPath {
 
 
 if ('choco.exe' | Test-NotInPath) {
-        Write-Host 'Installing Chocolatey' @FC
+    Write-Host 'Installing Chocolatey' @FC
     & .\Install-Chocolatey.ps1
 }
 
@@ -88,8 +88,10 @@ if ('choco.exe' | Test-NotInPath) {
         $Prerequisites += $_.Key
     }
 } -End {
-    Write-Host "Installing: $Prerequisites" @FC
-    & .\Install-Prerequisites.ps1 -Prerequisites $Prerequisites
+    if ($Prerequisites) {
+        Write-Host "Installing: $Prerequisites" @FC
+        & .\Install-Prerequisites.ps1 -Prerequisites $Prerequisites
+    }
 }
 
 $SwaggerPath = '.\swagger-codegen'
@@ -99,7 +101,7 @@ $SwaggerJarPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathF
 
 
 if (!(Test-Path -Path $SwaggerJarPath) -or $UpdateCodegen) {
-    Write-Host 'Cloning Swagger-Codegen repo' @FC
+    Write-Host 'Updating Swagger-Codegen repo' @FC
     & .\Install-SwaggerCodegenRepository.ps1 -SwaggerPath $SwaggerPath
 
     Write-Host 'Building Swagger-Codegen' @FC
