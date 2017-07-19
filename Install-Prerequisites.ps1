@@ -5,8 +5,15 @@
     Install Java Development Kit and Maven
 #>
 
-Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+[CmdletBinding()]
+Param (
+    $Prerequisites = @('JDK','Maven')
+)
 
-choco install jdk8 maven -y
+if ($Prerequisites) {
+    Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 
-Update-SessionEnvironment
+    & 'choco.exe' @(('-y', 'install') + $Prerequisites)
+
+    Update-SessionEnvironment
+}
