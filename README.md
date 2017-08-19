@@ -1,3 +1,7 @@
+A word of warning: this repo is probably rendered obsolete by the release of [PSSwagger](https://github.com/PowerShell/PSSwagger).
+
+---
+
 # Generate PowerShell module from [OpenAPI](https://www.openapis.org/) spec using [Swagger Codegen](http://swagger.io/swagger-codegen/).
 
 [![Promo Tweet](img/PromoTweet.png)](https://twitter.com/wing328/status/877184938344239104)
@@ -6,6 +10,7 @@ Swagger Codegen 2.2.3 aims to have PowerShell module generator. Until it's relea
 
 ## Info
 
+* Accompanying post: [Building PowerShell modules with Swagger Codegen](https://beatcracker.wordpress.com/2017/08/17/building-powershell-modules-with-swagger-codegen/)
 * Discussion: [[PowerShell] Add PowerShell API client generator](https://github.com/swagger-api/swagger-codegen/issues/4320)
 * Pull Request: [PowerShell module](https://github.com/swagger-api/swagger-codegen/pull/5789)
 
