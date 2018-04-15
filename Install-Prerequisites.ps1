@@ -8,11 +8,15 @@
 [CmdletBinding()]
 Param (
     [ValidateNotNullOrEmpty()]
-    $Prerequisites = @('JDK','Maven')
+    $Prerequisites = @('JDK8','Maven')
 )
 
 Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 
-& 'choco.exe' @(('-y', 'install') + $Prerequisites)
+& 'choco.exe' @(
+    'install'
+    $Prerequisites
+    '--confirm'
+)
 
 Update-SessionEnvironment
