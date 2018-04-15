@@ -8,7 +8,7 @@
 
 .Parameter ApiName
     Name of API client to generate.
-    
+
     * If used without InFile parameter, script will fetch API spec from https://apis.guru/openapi-directory/
 
     * If InFile parameter is used to specify custom Swagger spec file, ApiName is used as target directory name and for guid generation.
@@ -47,7 +47,7 @@ Param (
 
     [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'File')]
     [ValidateScript({
-        Test-Path -Path $_ -PathType Leaf        
+        Test-Path -Path $_ -PathType Leaf
     })]
     [string]$InFile,
 
@@ -61,18 +61,63 @@ Param (
 
     [Parameter(Mandatory = $true)]
     [ValidateScript({
-        Test-Path -Path $_ -PathType Leaf        
+        Test-Path -Path $_ -PathType Leaf
     })]
     [string]$SwaggerJarPath,
 
     [switch]$PassThru
 )
 
+Begin {
+    Add-Type -AssemblyName System.Web.Extensions -ErrorAction Stop
+
+    <#
+    .Synopsis
+        Convert JSON strin to object using JavaScriptSerializer.
+        Can handle case-sensitive JSON.
+
+    .Parameter MaxJsonLength
+        The maximum length of JSON strings. The default is [int]::MaxValue.
+
+    .Parameter RecursionLimit
+        The number of object levels. The default is 100.
+    #>
+    function ConvertFrom-JsonViaJSSerializer {
+        [CmdletBinding()]
+        Param (
+            [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+            [AllowEmptyString()]
+            [string]$InputObject,
+
+            [int]$MaxJsonLength = [int]::MaxValue,
+
+            [int]$RecursionLimit
+        )
+
+        Begin {
+            $JSSerializer = New-Object -TypeName System.Web.Script.Serialization.JavaScriptSerializer
+
+            if ($MaxJsonLength) {
+                $JSSerializer.MaxJsonLength = $MaxJsonLength
+            }
+
+            if ($RecursionLimit) {
+                $JSSerializer.RecursionLimit = $RecursionLimit
+            }
+        }
+
+
+        Process {
+            $JSSerializer.DeserializeObject($InputObject)
+        }
+    }
+}
+
 End {
     $RemoveInFile = $false
 
     if ('Name' -eq $PSCmdlet.ParameterSetName) {
-        $ApiList = Invoke-WebRequest -UseBasicParsing -Uri https://api.apis.guru/v2/list.json | ConvertFrom-Json
+        $ApiList = Invoke-WebRequest -UseBasicParsing -Uri https://api.apis.guru/v2/list.json | ConvertFrom-JsonViaJSSerializer
         if ($ApiList.$ApiName) {
             $ApiUrl = if ($Version) {
                 $ApiList.$ApiName.versions.$Version.swaggerYamlUrl
@@ -118,6 +163,7 @@ End {
         )
     }
 
+    Write-Host "Commandline: java.exe $Arguments" -ForegroundColor Green
     $ret = & java.exe $Arguments 2>&1
 
     if ($LASTEXITCODE) {
