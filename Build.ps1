@@ -4,7 +4,7 @@
 
 .Parameter ApiName
     Name of API client to generate.
-    
+
     * If used without InFile parameter, script will fetch API spec from https://apis.guru/openapi-directory/
 
     * If InFile parameter is used to specify custom Swagger spec file, ApiName is used as target directory name and for guid generation.
@@ -48,7 +48,7 @@ Param (
 
     [Parameter(Mandatory = $true, ParameterSetName = 'File')]
     [ValidateScript({
-        Test-Path -Path $_ -PathType Leaf        
+        Test-Path -Path $_ -PathType Leaf
     })]
     [string]$InFile,
 
@@ -84,7 +84,7 @@ if ('choco.exe' | Test-NotInPath) {
 
 @{
     Maven = 'mvn.exe'
-    JDK = 'jar.exe'
+    JDK8 = 'jar.exe'
 }.GetEnumerator() | ForEach-Object -Begin {
     $Prerequisites = @()
 } -Process {
@@ -127,7 +127,6 @@ if (!(Test-Path -Path $SwaggerJarPath -PathType Leaf)) {
 
 $CSharp = @{
     ApiName = $ApiName
-    Version = $Version
     OutDir = Join-Path $OutDir "$FsApiName\CSharp"
     Language = 'csharp'
     Properties = "packageGuid={$Guid}"
@@ -137,7 +136,6 @@ $CSharp = @{
 
 $PowerShell = @{
     ApiName = $ApiName
-    Version = $Version
     OutDir = Join-Path $OutDir "$FsApiName\PowerShell"
     Language = 'powershell'
     Properties = 'packageGuid={0},csharpClientPath=$ScriptDir\..\CSharp' -f $Guid
@@ -153,6 +151,9 @@ if ('File' -eq $PSCmdlet.ParameterSetName) {
 
     $CSharp.InFile = $InFile
     $PowerShell.InFile = $InFile
+} else {
+    $CSharp.Version = $Version
+    $PowerShell.Version = $Version
 }
 
 Write-Host 'Generating C# client dependency' @FC
